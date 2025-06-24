@@ -4,110 +4,273 @@
     <meta charset="UTF-8" />
     <title>Celebrity Lookalike Scanner</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
     <!-- TensorFlow.js & TM Image -->
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.9.0"></script>
     <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@0.8/dist/teachablemachine-image.min.js"></script>
 
     <style>
+      :root {
+        --primary: #4361ee;
+        --primary-light: #4895ef;
+        --secondary: #3f37c9;
+        --dark: #1b263b;
+        --darker: #0f172a;
+        --light: #f8f9fa;
+        --success: #4cc9f0;
+        --warning: #f72585;
+      }
+      
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      
       body {
-        background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
-        font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        background: var(--darker);
+        font-family: 'Poppins', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: flex-start;
         min-height: 100vh;
         margin: 0;
-        padding: 40px 20px;
-        color: #f0f0f0;
+        padding: 2rem 1rem;
+        color: var(--light);
+        line-height: 1.6;
       }
-
-      h1 {
-        font-size: 3rem;
-        margin-bottom: 10px;
-        background: linear-gradient(90deg, #00c6ff, #0072ff);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-      }
-
-      p {
-        font-size: 1.2rem;
-        color: #ccc;
-        margin-bottom: 30px;
-        text-align: center;
-        max-width: 600px;
-      }
-
-      video {
-        margin-bottom: 25px;
-        border-radius: 20px;
-        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
-        border: 4px solid rgba(255, 255, 255, 0.1);
-        transition: transform 0.3s;
-      }
-
-      video:hover {
-        transform: scale(1.02);
-      }
-
-      #label-container {
+      
+      .container {
+        width: 100%;
+        max-width: 800px;
         display: flex;
         flex-direction: column;
         align-items: center;
+        gap: 1.5rem;
+      }
+      
+      header {
+        text-align: center;
+        margin-bottom: 1rem;
+      }
+      
+      h1 {
+        font-size: 2.5rem;
+        margin-bottom: 0.5rem;
+        background: linear-gradient(90deg, var(--primary-light), var(--primary));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        font-weight: 700;
+      }
+      
+      .subtitle {
+        font-size: 1.1rem;
+        color: rgba(255, 255, 255, 0.7);
+        margin-bottom: 1.5rem;
+        max-width: 600px;
+      }
+      
+      .scanner-container {
+        position: relative;
         width: 100%;
         max-width: 400px;
+        margin: 0 auto;
       }
-
-      #label-container div {
-        background: rgba(255, 255, 255, 0.05);
-        backdrop-filter: blur(6px);
-        padding: 12px 25px;
-        margin: 6px 0;
-        border-radius: 30px;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      
+      video {
         width: 100%;
-        text-align: center;
-        font-weight: 600;
-        letter-spacing: 0.5px;
+        border-radius: 16px;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+        border: 3px solid rgba(255, 255, 255, 0.1);
+        display: none;
+        aspect-ratio: 1/1;
+        object-fit: cover;
+        background: var(--dark);
       }
-
+      
+      .webcam-placeholder {
+        width: 100%;
+        aspect-ratio: 1/1;
+        border-radius: 16px;
+        background: linear-gradient(45deg, var(--dark), var(--darker));
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        color: rgba(255, 255, 255, 0.5);
+        border: 2px dashed rgba(255, 255, 255, 0.1);
+        transition: all 0.3s ease;
+      }
+      
+      .webcam-placeholder i {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+      }
+      
+      .webcam-placeholder p {
+        font-size: 1rem;
+        text-align: center;
+        max-width: 80%;
+      }
+      
+      #label-container {
+        width: 100%;
+        max-width: 400px;
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+      }
+      
+      .prediction-card {
+        background: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(10px);
+        padding: 1rem 1.5rem;
+        border-radius: 12px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        transition: all 0.3s ease;
+        border-left: 4px solid var(--primary);
+      }
+      
+      .prediction-card:hover {
+        transform: translateY(-3px);
+        background: rgba(255, 255, 255, 0.1);
+      }
+      
+      .prediction-card.top-match {
+        background: rgba(67, 97, 238, 0.15);
+        border-left: 4px solid var(--success);
+      }
+      
+      .prediction-name {
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+      
+      .prediction-value {
+        font-weight: 700;
+        color: var(--success);
+      }
+      
+      .top-match .prediction-value {
+        color: #4cc9f0;
+      }
+      
       button {
-        background: linear-gradient(90deg, #00c6ff, #0072ff);
-        color: #fff;
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        color: white;
         border: none;
         border-radius: 50px;
-        padding: 15px 50px;
+        padding: 1rem 2.5rem;
         font-size: 1rem;
         font-weight: 600;
-        letter-spacing: 0.5px;
         cursor: pointer;
-        transition: transform 0.3s, box-shadow 0.3s;
-        margin-bottom: 30px;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        box-shadow: 0 4px 15px rgba(67, 97, 238, 0.3);
       }
-
+      
       button:hover {
         transform: translateY(-3px);
-        box-shadow: 0 10px 20px rgba(0, 198, 255, 0.3);
+        box-shadow: 0 8px 25px rgba(67, 97, 238, 0.4);
       }
-
+      
+      button:active {
+        transform: translateY(1px);
+      }
+      
+      button i {
+        font-size: 1.2rem;
+      }
+      
+      .loading {
+        display: none;
+        flex-direction: column;
+        align-items: center;
+        gap: 1rem;
+        margin: 1rem 0;
+      }
+      
+      .spinner {
+        width: 40px;
+        height: 40px;
+        border: 4px solid rgba(255, 255, 255, 0.1);
+        border-radius: 50%;
+        border-top-color: var(--primary);
+        animation: spin 1s ease-in-out infinite;
+      }
+      
+      @keyframes spin {
+        to { transform: rotate(360deg); }
+      }
+      
+      .loading-text {
+        color: rgba(255, 255, 255, 0.7);
+      }
+      
+      footer {
+        margin-top: 2rem;
+        color: rgba(255, 255, 255, 0.5);
+        font-size: 0.9rem;
+        text-align: center;
+      }
+      
       @media (max-width: 600px) {
-        video {
-          width: 100% !important;
+        h1 {
+          font-size: 2rem;
+        }
+        
+        .subtitle {
+          font-size: 1rem;
+        }
+        
+        button {
+          padding: 0.8rem 2rem;
+          font-size: 0.9rem;
         }
       }
     </style>
   </head>
   <body>
-    <h1>Celebrity Lookalike Scanner</h1>
-    <p>
-      See which celebrity you resemble! Click below to start the AI-powered
-      scanner and get instant live predictions.
-    </p>
-
-    <button type="button" onclick="init()">Start Scanner</button>
-    <video id="webcam" autoplay playsinline width="300" height="300"></video>
-    <div id="label-container"></div>
+    <div class="container">
+      <header>
+        <h1>Celebrity Lookalike Scanner</h1>
+        <p class="subtitle">
+          Discover which celebrity you resemble most with our AI-powered scanner. 
+          Get instant live predictions with just one click!
+        </p>
+      </header>
+      
+      <button type="button" onclick="init()">
+        <i class="fas fa-camera"></i> Start Scanner
+      </button>
+      
+      <div class="loading" id="loading">
+        <div class="spinner"></div>
+        <p class="loading-text">Loading AI model and camera...</p>
+      </div>
+      
+      <div class="scanner-container">
+        <div class="webcam-placeholder" id="webcam-placeholder">
+          <i class="fas fa-user-circle"></i>
+          <p>Camera feed will appear here</p>
+        </div>
+        <video id="webcam" autoplay playsinline></video>
+      </div>
+      
+      <div id="label-container"></div>
+      
+      <footer>
+        <p>Powered by TensorFlow.js and Teachable Machine</p>
+      </footer>
+    </div>
 
     <script type="text/javascript">
       const URL = "https://teachablemachine.withgoogle.com/models/A6o0yrIs5/";
@@ -117,6 +280,11 @@
 
       async function init() {
         try {
+          // Show loading state
+          document.getElementById('loading').style.display = 'flex';
+          document.getElementById('webcam-placeholder').style.display = 'none';
+          document.querySelector('button').disabled = true;
+          
           const modelURL = URL + "model.json";
           const metadataURL = URL + "metadata.json";
 
@@ -133,16 +301,28 @@
           });
           console.log("✅ Webcam initialized at", INPUT_SIZE, "x", INPUT_SIZE);
 
+          // Show webcam and hide placeholder
+          webcamElement.style.display = 'block';
+          
           labelContainer = document.getElementById("label-container");
           labelContainer.innerHTML = "";
           for (let i = 0; i < maxPredictions; i++) {
             labelContainer.appendChild(document.createElement("div"));
           }
 
+          // Hide loading state
+          document.getElementById('loading').style.display = 'none';
+          
           window.requestAnimationFrame(loop);
         } catch (error) {
           console.error("🚫 Error:", error);
-          alert("Error: " + error);
+          
+          // Reset UI on error
+          document.getElementById('loading').style.display = 'none';
+          document.getElementById('webcam-placeholder').style.display = 'flex';
+          document.querySelector('button').disabled = false;
+          
+          alert("Error: " + error.message);
         }
       }
 
@@ -158,22 +338,37 @@
         console.log("Raw prediction:", prediction);
 
         if (!prediction || prediction.length === 0) {
-          labelContainer.children[0].innerHTML = "No prediction";
+          labelContainer.innerHTML = '<div class="prediction-card">No predictions available</div>';
           return;
         }
 
         prediction.sort((a, b) => b.probability - a.probability);
 
+        // Clear previous predictions
+        labelContainer.innerHTML = '';
+        
+        // Add top match with special styling
         const topMatch = prediction[0];
-        labelContainer.children[0].innerHTML = `👑 Best Match: ${
-          topMatch.className
-        } (${(topMatch.probability * 100).toFixed(2)}%)`;
+        const topMatchElement = document.createElement('div');
+        topMatchElement.className = 'prediction-card top-match';
+        topMatchElement.innerHTML = `
+          <span class="prediction-name">
+            <i class="fas fa-crown"></i> ${topMatch.className}
+          </span>
+          <span class="prediction-value">${(topMatch.probability * 100).toFixed(1)}%</span>
+        `;
+        labelContainer.appendChild(topMatchElement);
 
+        // Add other predictions
         for (let i = 1; i < maxPredictions; i++) {
           const p = prediction[i];
-          labelContainer.children[i].innerHTML = `${p.className}: ${(
-            p.probability * 100
-          ).toFixed(2)}%`;
+          const predictionElement = document.createElement('div');
+          predictionElement.className = 'prediction-card';
+          predictionElement.innerHTML = `
+            <span class="prediction-name">${p.className}</span>
+            <span class="prediction-value">${(p.probability * 100).toFixed(1)}%</span>
+          `;
+          labelContainer.appendChild(predictionElement);
         }
       }
     </script>
