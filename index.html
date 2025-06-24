@@ -5,6 +5,7 @@
     <title>Celebrity Lookalike Scanner</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     
     <!-- TensorFlow.js & TM Image -->
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.9.0"></script>
@@ -12,14 +13,16 @@
 
     <style>
       :root {
-        --primary: #4361ee;
-        --primary-light: #4895ef;
-        --secondary: #3f37c9;
-        --dark: #1b263b;
+        --primary: #6366f1;
+        --primary-light: #818cf8;
+        --primary-dark: #4f46e5;
+        --secondary: #a855f7;
+        --dark: #1e293b;
         --darker: #0f172a;
-        --light: #f8f9fa;
-        --success: #4cc9f0;
-        --warning: #f72585;
+        --light: #f8fafc;
+        --success: #22d3ee;
+        --warning: #f43f5e;
+        --border-radius: 12px;
       }
       
       * {
@@ -30,181 +33,193 @@
       
       body {
         background: var(--darker);
-        font-family: 'Poppins', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
         display: flex;
         flex-direction: column;
         align-items: center;
-        justify-content: flex-start;
+        justify-content: center;
         min-height: 100vh;
-        margin: 0;
-        padding: 2rem 1rem;
+        padding: 1.5rem;
         color: var(--light);
-        line-height: 1.6;
+        line-height: 1.5;
       }
       
-      .container {
+      .app-container {
         width: 100%;
-        max-width: 800px;
+        max-width: 480px;
         display: flex;
         flex-direction: column;
-        align-items: center;
         gap: 1.5rem;
       }
       
       header {
         text-align: center;
-        margin-bottom: 1rem;
+        margin-bottom: 0.5rem;
       }
       
       h1 {
-        font-size: 2.5rem;
-        margin-bottom: 0.5rem;
+        font-size: 2.25rem;
+        font-weight: 700;
         background: linear-gradient(90deg, var(--primary-light), var(--primary));
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
-        font-weight: 700;
+        line-height: 1.2;
+        margin-bottom: 0.75rem;
       }
       
       .subtitle {
-        font-size: 1.1rem;
+        font-size: 1rem;
         color: rgba(255, 255, 255, 0.7);
-        margin-bottom: 1.5rem;
-        max-width: 600px;
+        font-weight: 400;
       }
       
-      .scanner-container {
+      .scanner-section {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+      }
+      
+      .camera-container {
         position: relative;
         width: 100%;
-        max-width: 400px;
-        margin: 0 auto;
+        border-radius: var(--border-radius);
+        overflow: hidden;
       }
       
       video {
         width: 100%;
-        border-radius: 16px;
-        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
-        border: 3px solid rgba(255, 255, 255, 0.1);
-        display: none;
         aspect-ratio: 1/1;
         object-fit: cover;
         background: var(--dark);
+        display: none;
+        border-radius: var(--border-radius);
+        box-shadow: 0 12px 24px -8px rgba(0, 0, 0, 0.3);
       }
       
-      .webcam-placeholder {
+      .camera-placeholder {
         width: 100%;
         aspect-ratio: 1/1;
-        border-radius: 16px;
-        background: linear-gradient(45deg, var(--dark), var(--darker));
+        border-radius: var(--border-radius);
+        background: linear-gradient(135deg, var(--dark), #1e293b);
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
         color: rgba(255, 255, 255, 0.5);
-        border: 2px dashed rgba(255, 255, 255, 0.1);
-        transition: all 0.3s ease;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       }
       
-      .webcam-placeholder i {
-        font-size: 3rem;
+      .camera-placeholder i {
+        font-size: 2.5rem;
         margin-bottom: 1rem;
+        opacity: 0.8;
       }
       
-      .webcam-placeholder p {
-        font-size: 1rem;
+      .camera-placeholder p {
+        font-size: 0.95rem;
         text-align: center;
         max-width: 80%;
+        font-weight: 400;
       }
       
-      #label-container {
+      .predictions-container {
         width: 100%;
-        max-width: 400px;
         display: flex;
         flex-direction: column;
         gap: 0.75rem;
       }
       
       .prediction-card {
-        background: rgba(255, 255, 255, 0.05);
-        backdrop-filter: blur(10px);
-        padding: 1rem 1.5rem;
-        border-radius: 12px;
+        background: rgba(255, 255, 255, 0.03);
+        backdrop-filter: blur(12px);
+        padding: 1rem 1.25rem;
+        border-radius: var(--border-radius);
         display: flex;
         justify-content: space-between;
         align-items: center;
-        transition: all 0.3s ease;
-        border-left: 4px solid var(--primary);
+        transition: all 0.2s ease-out;
+        border-left: 3px solid var(--primary);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
       }
       
       .prediction-card:hover {
-        transform: translateY(-3px);
-        background: rgba(255, 255, 255, 0.1);
+        transform: translateY(-2px);
+        background: rgba(255, 255, 255, 0.07);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
       }
       
       .prediction-card.top-match {
-        background: rgba(67, 97, 238, 0.15);
-        border-left: 4px solid var(--success);
+        background: linear-gradient(90deg, rgba(99, 102, 241, 0.1), rgba(99, 102, 241, 0.05));
+        border-left: 3px solid var(--success);
       }
       
       .prediction-name {
-        font-weight: 600;
+        font-weight: 500;
         display: flex;
         align-items: center;
         gap: 0.5rem;
+        font-size: 0.95rem;
       }
       
       .prediction-value {
-        font-weight: 700;
+        font-weight: 600;
         color: var(--success);
+        font-feature-settings: "tnum";
+        font-variant-numeric: tabular-nums;
       }
       
       .top-match .prediction-value {
-        color: #4cc9f0;
+        color: var(--success);
       }
       
-      button {
-        background: linear-gradient(135deg, var(--primary), var(--secondary));
+      .cta-button {
+        background: linear-gradient(135deg, var(--primary), var(--primary-dark));
         color: white;
         border: none;
-        border-radius: 50px;
-        padding: 1rem 2.5rem;
+        border-radius: var(--border-radius);
+        padding: 1rem;
         font-size: 1rem;
         font-weight: 600;
         cursor: pointer;
-        transition: all 0.3s ease;
+        transition: all 0.2s ease-out;
         display: flex;
         align-items: center;
+        justify-content: center;
         gap: 0.5rem;
-        box-shadow: 0 4px 15px rgba(67, 97, 238, 0.3);
+        box-shadow: 0 4px 6px rgba(99, 102, 241, 0.2);
+        width: 100%;
       }
       
-      button:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 8px 25px rgba(67, 97, 238, 0.4);
+      .cta-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 12px rgba(99, 102, 241, 0.3);
+        background: linear-gradient(135deg, var(--primary-light), var(--primary));
       }
       
-      button:active {
-        transform: translateY(1px);
+      .cta-button:active {
+        transform: translateY(0);
       }
       
-      button i {
-        font-size: 1.2rem;
+      .cta-button i {
+        font-size: 1.1rem;
       }
       
-      .loading {
+      .loading-state {
         display: none;
         flex-direction: column;
         align-items: center;
         gap: 1rem;
-        margin: 1rem 0;
+        padding: 1rem 0;
       }
       
       .spinner {
-        width: 40px;
-        height: 40px;
-        border: 4px solid rgba(255, 255, 255, 0.1);
+        width: 32px;
+        height: 32px;
+        border: 3px solid rgba(255, 255, 255, 0.1);
         border-radius: 50%;
         border-top-color: var(--primary);
-        animation: spin 1s ease-in-out infinite;
+        animation: spin 0.8s linear infinite;
       }
       
       @keyframes spin {
@@ -213,62 +228,61 @@
       
       .loading-text {
         color: rgba(255, 255, 255, 0.7);
+        font-size: 0.9rem;
       }
       
       footer {
-        margin-top: 2rem;
-        color: rgba(255, 255, 255, 0.5);
-        font-size: 0.9rem;
+        margin-top: 1rem;
+        color: rgba(255, 255, 255, 0.4);
+        font-size: 0.8rem;
         text-align: center;
       }
       
-      @media (max-width: 600px) {
+      @media (max-width: 480px) {
         h1 {
           font-size: 2rem;
         }
         
-        .subtitle {
-          font-size: 1rem;
+        .app-container {
+          gap: 1.25rem;
         }
         
-        button {
-          padding: 0.8rem 2rem;
-          font-size: 0.9rem;
+        .scanner-section {
+          gap: 1.25rem;
         }
       }
     </style>
   </head>
   <body>
-    <div class="container">
+    <div class="app-container">
       <header>
         <h1>Celebrity Lookalike Scanner</h1>
-        <p class="subtitle">
-          Discover which celebrity you resemble most with our AI-powered scanner. 
-          Get instant live predictions with just one click!
-        </p>
+        <p class="subtitle">Discover which famous person shares your features with AI-powered facial recognition</p>
       </header>
       
-      <button type="button" onclick="init()">
-        <i class="fas fa-camera"></i> Start Scanner
+      <button class="cta-button" type="button" onclick="init()">
+        <i class="fas fa-camera"></i> Start Camera
       </button>
       
-      <div class="loading" id="loading">
+      <div class="loading-state" id="loading">
         <div class="spinner"></div>
-        <p class="loading-text">Loading AI model and camera...</p>
+        <p class="loading-text">Initializing AI scanner...</p>
       </div>
       
-      <div class="scanner-container">
-        <div class="webcam-placeholder" id="webcam-placeholder">
-          <i class="fas fa-user-circle"></i>
-          <p>Camera feed will appear here</p>
+      <div class="scanner-section">
+        <div class="camera-container">
+          <div class="camera-placeholder" id="webcam-placeholder">
+            <i class="fas fa-user-circle"></i>
+            <p>Camera feed will activate here</p>
+          </div>
+          <video id="webcam" autoplay playsinline></video>
         </div>
-        <video id="webcam" autoplay playsinline></video>
+        
+        <div class="predictions-container" id="label-container"></div>
       </div>
-      
-      <div id="label-container"></div>
       
       <footer>
-        <p>Powered by TensorFlow.js and Teachable Machine</p>
+        <p>Powered by TensorFlow.js • Teachable Machine</p>
       </footer>
     </div>
 
@@ -283,15 +297,14 @@
           // Show loading state
           document.getElementById('loading').style.display = 'flex';
           document.getElementById('webcam-placeholder').style.display = 'none';
-          document.querySelector('button').disabled = true;
+          document.querySelector('.cta-button').disabled = true;
+          document.querySelector('.cta-button').innerHTML = '<i class="fas fa-spinner fa-pulse"></i> Loading...';
           
           const modelURL = URL + "model.json";
           const metadataURL = URL + "metadata.json";
 
-          console.log("Loading model from:", modelURL);
           model = await tmImage.load(modelURL, metadataURL);
           maxPredictions = model.getTotalClasses();
-          console.log("✅ Model loaded with", maxPredictions, "classes");
 
           const webcamElement = document.getElementById("webcam");
           webcam = await tf.data.webcam(webcamElement, {
@@ -299,7 +312,6 @@
             resizeWidth: INPUT_SIZE,
             resizeHeight: INPUT_SIZE,
           });
-          console.log("✅ Webcam initialized at", INPUT_SIZE, "x", INPUT_SIZE);
 
           // Show webcam and hide placeholder
           webcamElement.style.display = 'block';
@@ -312,17 +324,19 @@
 
           // Hide loading state
           document.getElementById('loading').style.display = 'none';
+          document.querySelector('.cta-button').style.display = 'none';
           
           window.requestAnimationFrame(loop);
         } catch (error) {
-          console.error("🚫 Error:", error);
+          console.error("Error:", error);
           
           // Reset UI on error
           document.getElementById('loading').style.display = 'none';
           document.getElementById('webcam-placeholder').style.display = 'flex';
-          document.querySelector('button').disabled = false;
+          document.querySelector('.cta-button').disabled = false;
+          document.querySelector('.cta-button').innerHTML = '<i class="fas fa-camera"></i> Try Again';
           
-          alert("Error: " + error.message);
+          alert("Couldn't start the scanner. Please allow camera access and try again.");
         }
       }
 
@@ -335,10 +349,9 @@
         const prediction = await model.predict(
           document.getElementById("webcam")
         );
-        console.log("Raw prediction:", prediction);
 
         if (!prediction || prediction.length === 0) {
-          labelContainer.innerHTML = '<div class="prediction-card">No predictions available</div>';
+          labelContainer.innerHTML = '<div class="prediction-card">Analyzing your features...</div>';
           return;
         }
 
@@ -355,20 +368,22 @@
           <span class="prediction-name">
             <i class="fas fa-crown"></i> ${topMatch.className}
           </span>
-          <span class="prediction-value">${(topMatch.probability * 100).toFixed(1)}%</span>
+          <span class="prediction-value">${(topMatch.probability * 100).toFixed(1)}% match</span>
         `;
         labelContainer.appendChild(topMatchElement);
 
         // Add other predictions
         for (let i = 1; i < maxPredictions; i++) {
           const p = prediction[i];
-          const predictionElement = document.createElement('div');
-          predictionElement.className = 'prediction-card';
-          predictionElement.innerHTML = `
-            <span class="prediction-name">${p.className}</span>
-            <span class="prediction-value">${(p.probability * 100).toFixed(1)}%</span>
-          `;
-          labelContainer.appendChild(predictionElement);
+          if (p.probability > 0.05) { // Only show predictions with >5% probability
+            const predictionElement = document.createElement('div');
+            predictionElement.className = 'prediction-card';
+            predictionElement.innerHTML = `
+              <span class="prediction-name">${p.className}</span>
+              <span class="prediction-value">${(p.probability * 100).toFixed(1)}%</span>
+            `;
+            labelContainer.appendChild(predictionElement);
+          }
         }
       }
     </script>
