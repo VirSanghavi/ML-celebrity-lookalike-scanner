@@ -53,7 +53,7 @@ Built by [Vir Sanghavi](https://github.com/VirSanghavi) using:
 ---
 ## 🌐 Live Demo
 
-👉 [Check it out here!](https://YOUR-VERCEL-URL.vercel.app)
+👉 [Check it out here!](https://ml-celebrity-lookalike-scanner.vercel.app/)
 ---
 
 ## 🔗 License
