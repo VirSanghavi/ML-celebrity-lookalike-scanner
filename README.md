@@ -1,4 +1,4 @@
-# 🎭 Celebrity Lookalike Scanner
+# 🎭 Machine Learning Celebrity Lookalike Scanner
 
 **Find out which celebrity you resemble — in real time!**  
 This is a sleek AI-powered web app that uses a custom [Google Teachable Machine](https://teachablemachine.withgoogle.com/) image model to compare your live webcam feed with a set of celebrity faces.
